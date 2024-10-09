@@ -1,0 +1,61 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}
+Upload File - SecureFile
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Upload Your Secure File</h2>
+
+    <form id="uploadForm" action="{{ url_for('upload_file') }}" method="POST" enctype="multipart/form-data" class="mt-4 shadow-lg p-4 rounded bg-light">
+        <div class="mb-3">
+            <label for="file" class="form-label">Choose File</label>
+            <input type="file" class="form-control" id="fileInput" name="file" required>
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">Encryption Password</label>
+            <input type="password" class="form-control" id="passwordInput" name="password" required minlength="8" placeholder="Minimum 8 characters">
+        </div>
+        <div class="text-center">
+            <button type="button" id="storeKeyButton" class="btn btn-info btn-lg me-2">Store Encryption Key</button>
+            <button type="submit" class="btn btn-success btn-lg">Upload</button>
+        </div>
+
+        <p id="fileSizeError" class="text-danger mt-2 d-none">File size exceeds the limit (5 MB).</p>
+        <p id="fileTypeError" class="text-danger mt-2 d-none">Invalid file type. Allowed: txt, pdf, png, jpg, jpeg, gif.</p>
+    </form>
+
+    <div class="text-center mt-4">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-lg">Go back to Dashboard</a>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+
+<style>
+    body {
+        background: linear-gradient(135deg, #6b6b6b, #4e4e4e);
+        color: #f8f9fa;
+        font-family: 'Arial', sans-serif;
+    }
+    h2 {
+        color: #f8f9fa; /* Light color for the heading */
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6);
+    }
+    .btn {
+        min-width: 150px; /* Minimum button width */
+        transition: background-color 0.3s, transform 0.3s;
+    }
+    .btn:hover {
+        transform: translateY(-3px); /* Lift effect on hover */
+    }
+    .form-control:focus {
+        border-color: #28a745; /* Green border on focus */
+        box-shadow: 0 0 5px rgba(40, 167, 69, 0.5);
+    }
+    .bg-light {
+        background-color: rgba(255, 255, 255, 0.9) !important; /* Semi-transparent background for form */
+    }
+</style>
+{% endblock %}

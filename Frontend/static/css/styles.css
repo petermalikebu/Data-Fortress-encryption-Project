@@ -1,0 +1,453 @@
+/* Importing Google Fonts */
+@import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@200;300;400;500;600;700&display=swap");
+
+/* Universal Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Open Sans", sans-serif;
+}
+
+/* Global Styles */
+body {
+  background: #f4f4f9;
+  color: #333;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-image: url('../images/good\ \(1\).jpg'); /* Update this with the correct image path */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Container */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Encouraging Message */
+h2 {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #007bff;
+}
+
+.navbar-nav {
+  display: flex;
+  justify-content: center; /* Centers the items horizontally */
+  width: 100%; /* Ensure the parent takes full width */
+}
+
+.nav-item {
+  margin-left: 15px;
+  margin-right: 15px;
+}
+
+
+/* Navbar */
+nav.navbar {
+  padding: 10px 20px;
+  background-color: #333;
+}
+
+nav a.navbar-brand, nav a.nav-link {
+  color: #fff;
+  font-weight: 600;
+}
+
+nav a.nav-link:hover {
+  color: #007bff;
+}
+
+/* Mobile Navigation (Hamburger Menu) */
+.hamburger-btn {
+  display: none;
+  font-size: 2.5rem;
+  cursor: pointer;
+}
+
+.close-btn {
+  display: none;
+  font-size: 2rem;
+  cursor: pointer;
+}
+
+/* Mobile layout for navbar */
+@media (max-width: 768px) {
+  .navbar .links {
+    position: fixed;
+    top: 0;
+    left: -100%;
+    height: 100%;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    flex-direction: column;
+    justify-content: center;
+    transition: left 0.3s ease;
+  }
+
+  .navbar .links.open {
+    left: 0;
+  }
+
+  .navbar .links li {
+    margin: 20px 0;
+  }
+
+  .hamburger-btn {
+    display: block;
+  }
+
+  .close-btn {
+    display: block;
+    font-size: 3rem;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+  }
+}
+
+/* Transition effect for popup modals */
+.modal.fade .modal-dialog {
+  transform: translateY(-50px);
+  transition: transform 0.3s ease-out;
+}
+
+.modal.show .modal-dialog {
+  transform: translateY(0);
+}
+
+/* Form pop-up (login/signup) */
+.modal .modal-dialog {
+  max-width: 500px;
+}
+
+.modal-header {
+  background-color: #333;
+  color: white;
+}
+
+.modal-body {
+  padding: 20px;
+  background-color: #f8f9fa;
+}
+
+/* Form styling for login and signup */
+form {
+  width: 100%;
+  max-width: 400px;
+  padding: 30px;
+  background: rgba(10, 0, 0, 0.9);
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+/* Input Fields */
+.input-field {
+  position: relative;
+  margin: 15px 0;
+  border-bottom: 2px solid #ccc;
+}
+
+.input-field label {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  color: #666;
+  font-size: 16px;
+  pointer-events: none;
+  transition: 0.15s ease;
+}
+
+.input-field input {
+  width: 100%;
+  padding: 10px;
+  height: 40px;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #333;
+}
+
+.input-field input:focus ~ label,
+.input-field input:valid ~ label {
+  font-size: 0.8rem;
+  top: 10px;
+  transform: translateY(-120%);
+}
+
+/* Button Styles */
+button, .btn {
+  background: #007bff;
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: 0.3s ease;
+}
+
+button:hover, .btn:hover {
+  background: #0056b3;
+}
+
+/* Additional Elements */
+.forget {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 25px 0;
+  color: #333;
+}
+
+.error {
+  color: red;
+  margin-top: 10px;
+}
+
+/* Dashboard Styles */
+.dashboard-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.welcome-message {
+  font-size: 1.8rem;
+  color: #007bff;
+}
+
+.button-group {
+  display: flex;
+  justify-content: space-between;
+}
+
+.file-table {
+  margin-top: 20px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th, .table td {
+  padding: 12px;
+  text-align: left;
+}
+
+.table th {
+  background-color: #f8f9fa;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: #f2f2f2;
+}
+
+/* Footer */
+.footer {
+  background-color: #f8f9fa;
+  padding: 10px;
+  text-align: center;
+  width: 100%;
+  position: fixed;
+  bottom: 0;
+}
+
+/* Responsive Styles */
+@media (max-width: 600px) {
+  .container {
+    padding: 15px;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  button, .btn {
+    font-size: 0.9rem;
+  }
+}
+
+/* Features Section */
+.feature {
+  background-color: #222;
+  color: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s ease;
+}
+
+.feature:hover {
+  transform: scale(1.05);
+}
+
+.feature h4 {
+  font-size: 1.5rem;
+  margin-bottom: 15px;
+}
+
+.feature p {
+  font-size: 1rem;
+  color: #ccc;
+}
+
+/* Card Styling */
+.card {
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+}
+
+.card-body {
+  padding: 20px;
+}
+
+.card-title {
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+}
+
+/* File Upload Section */
+#uploadForm .form-control {
+  border-radius: 5px;
+  padding: 10px;
+}
+
+#uploadForm button {
+  background-color: #28a745;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  font-size: 1.1rem;
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+#uploadForm button:hover {
+  background-color: #218838;
+}
+
+#fileSizeError {
+  font-size: 0.9rem;
+}
+
+/* Download Buttons */
+form button.btn-primary {
+  background-color: #007bff;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+form button.btn-primary:hover {
+  background-color: #0056b3;
+}
+
+/* Additional Buttons */
+a.btn-info, a.btn-secondary {
+  padding: 10px 15px;
+  font-size: 1rem;
+  border-radius: 5px;
+  text-decoration: none;
+  color: #fff;
+  transition: background-color 0.3s ease;
+}
+
+a.btn-info:hover {
+  background-color: #138496;
+}
+
+a.btn-secondary:hover {
+  background-color: #5a6268;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .d-flex {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .container {
+    padding: 10px;
+  }
+
+  h2 {
+    font-size: 1.8rem;
+  }
+
+  .email-display {
+    margin-top: 10px;
+  }
+}
+
+.admin-dashboard {
+  background-color: #f8f9fa; /* Light background for contrast */
+  border-radius: 10px; /* Rounded corners for the dashboard */
+  padding: 20px; /* Add padding */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow effect */
+}
+
+.admin-section {
+  background: white; /* White background for sections */
+  border-radius: 8px; /* Rounded corners for sections */
+  padding: 20px; /* Padding inside sections */
+  margin-bottom: 20px; /* Space between sections */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+}
+
+.table th, .table td {
+  vertical-align: middle; /* Center the table content vertically */
+}
+
+.table th {
+  background-color: #343a40; /* Dark background for header */
+  color: white; /* White text for header */
+}
+
+.table-hover tbody tr:hover {
+  background-color: #f1f1f1; /* Highlight row on hover */
+}
+
+h4 {
+  border-bottom: 2px solid #007bff; /* Bottom border for headings */
+  padding-bottom: 10px; /* Space below heading */
+}
+
+.btn {
+  transition: background-color 0.3s; /* Smooth transition for button hover */
+}
+
+.btn:hover {
+  filter: brightness(90%); /* Darken button on hover */
+}
+.table th, .table td {
+  vertical-align: middle; /* Center content vertically */
+}
+
+.table-hover tbody tr:hover {
+  background-color: #f1f1f1; /* Highlight row on hover */
+}
+
+#searchInput {
+  width: 100%; /* Full width for the search input */
+  margin-bottom: 20px; /* Space below input */
+}

@@ -1,0 +1,66 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}
+Admin Dashboard - SecureFile
+{% endblock %}
+
+{% block content %}
+<div class="admin-dashboard container mt-5">
+    <h2 class="text-center mb-4">Admin Dashboard</h2>
+
+    <!-- User Management Section -->
+    <div class="admin-section">
+        <h4 class="mb-3">User Management</h4>
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.role }}</td>
+                        <td>
+                            {% if user.role == 'admin' %}
+                            <form method="POST" action="{{ url_for('demote_user', email=user.email) }}" onsubmit="return confirmAction('Demote')">
+                                <button type="submit" class="btn btn-warning btn-sm" data-bs-toggle="tooltip" title="Demote to User"><i class="fas fa-user-slash"></i> Demote</button>
+                            </form>
+                            {% else %}
+                            <form method="POST" action="{{ url_for('promote_user', email=user.email) }}" onsubmit="return confirmAction('Promote')">
+                                <button type="submit" class="btn btn-success btn-sm" data-bs-toggle="tooltip" title="Promote to Admin"><i class="fas fa-user-check"></i> Promote</button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Audit Logs Section -->
+    <div class="admin-section mt-5">
+        <h4 class="mb-3">Audit Logs</h4>
+        <a href="{{ url_for('view_audit_logs') }}" class="btn btn-info"><i class="fas fa-file-alt"></i> View All Audit Logs</a>
+    </div>
+</div>
+
+<script>
+    function confirmAction(action) {
+        return confirm(`Are you sure you want to ${action} this user?`);
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+    });
+</script>
+{% endblock %}

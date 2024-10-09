@@ -1,0 +1,103 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}
+Audit Logs - SecureFile
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Audit Logs</h2>
+
+    <div class="mb-3">
+        <input type="text" id="searchInput" class="form-control" placeholder="Search logs...">
+    </div>
+
+    <div class="table-responsive">
+        <div class="card">
+            <div class="card-body">
+                <table class="table table-striped table-hover" id="auditLogsTable">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Action</th>
+                            <th>User</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                        <tr>
+                            <td>{{ log.timestamp }}</td>
+                            <td>{{ log.action }}</td>
+                            <td>{{ log.user }}</td>
+                            <td>{{ log.details }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4 text-center">
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">Back to Admin Dashboard</a>
+        <form method="POST" action="{{ url_for('view_audit_logs') }}" class="d-inline">
+            <button type="submit" class="btn btn-success">Download Logs</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Filter logs by search input
+    document.getElementById('searchInput').addEventListener('keyup', function() {
+        const value = this.value.toLowerCase();
+        const rows = document.querySelectorAll('#auditLogsTable tbody tr');
+        
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(value) ? '' : 'none';
+        });
+    });
+</script>
+
+<style>
+    /* Custom styles for the audit logs page */
+    h2 {
+        color: #343a40; /* Dark gray color for the heading */
+        font-family: 'Arial', sans-serif; /* Change font family */
+    }
+
+    .table {
+        border-radius: 0.5rem;
+        overflow: hidden; /* Rounded corners for the table */
+    }
+
+    .thead-dark th {
+        background-color: #343a40; /* Dark background for the table header */
+        color: #ffffff; /* White text for header */
+    }
+
+    .table-striped tbody tr:nth-of-type(odd) {
+        background-color: #f8f9fa; /* Light gray for odd rows */
+    }
+
+    .table-striped tbody tr:nth-of-type(even) {
+        background-color: #ffffff; /* White for even rows */
+    }
+
+    .table tbody tr:hover {
+        background-color: #f1f1f1; /* Highlight row on hover */
+    }
+
+    .card {
+        border: 1px solid #ced4da; /* Border for card */
+        border-radius: 0.5rem; /* Rounded corners for card */
+        margin-bottom: 2rem; /* Space below card */
+    }
+
+    .card-body {
+        padding: 1.5rem; /* Padding for card body */
+    }
+</style>
+
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}
+My Files - SecureFile
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center mb-4">My Uploaded Files</h2>
+
+    {% if files_count > 0 %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">File Name</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for file in files %}
+                <tr>
+                    <td>{{ file['filename'] }}</td>
+                    <td>
+                        <form action="{{ url_for('download_file') }}" method="POST" class="d-inline">
+                            <input type="hidden" name="filename" value="{{ file['filename'] }}">
+                            <input type="password" name="password" placeholder="Decryption Password" required>
+                            <button type="submit" class="btn btn-primary btn-sm">Download</button>
+                        </form>
+                        <form action="{{ url_for('my_files') }}" method="POST" class="d-inline">
+                            <input type="hidden" name="file_id" value="{{ file['_id'] }}">
+                            <input type="password" name="password" placeholder="Delete Password" required>
+                            <button type="submit" name="delete" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="text-center">You have not uploaded any files yet.</p>
+    {% endif %}
+
+    <div class="text-center mt-4">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Go back to Dashboard</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block custom_styles %}
+<style>
+    h2 {
+        color: #CED2D6FF; /* Dark gray color for the heading */
+        font-family: 'Arial', sans-serif; /* Change font family */
+        font-weight: bold; /* Make the font bold */
+    }
+    .btn {
+        min-width: 100px; /* Minimum button width */
+    }
+</style>
+{% endblock %}

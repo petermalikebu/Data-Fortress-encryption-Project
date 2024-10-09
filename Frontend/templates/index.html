@@ -1,0 +1,35 @@
+<!-- frontend/templates/index.html -->
+{% extends "base.html" %}
+
+{% block hero %}
+<!-- Optionally, customize or omit the hero section for the index page -->
+{% endblock %}
+
+{% block features %}
+<!-- Optionally, customize or omit the features section for the index page -->
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5 text-center">
+    <h1>Welcome to Secure File Encryption System</h1>
+
+    {% if admin %}
+    <!-- Show admin controls -->
+    <div class="mt-4">
+        <h2>Admin Controls</h2>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-info">Manage Users</a>
+        <a href="{{ url_for('view_audit_logs') }}" class="btn btn-secondary">View Audit Logs</a>
+    </div>
+    {% else %}
+    <!-- Show user-specific controls -->
+    <div class="mt-4">
+        <h2>User Controls</h2>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Go to Dashboard</a>
+    </div>
+    {% endif %}
+
+    <form action="{{ url_for('logout') }}" method="post" class="mt-4">
+        <button type="submit" class="btn btn-danger">Logout</button>
+    </form>
+</div>
+{% endblock %}
