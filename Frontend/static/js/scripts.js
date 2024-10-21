@@ -66,6 +66,18 @@ function hidePopupMessage() {
     }
 }
 
+// Function to show a popup message
+function showPopupMessage(message) {
+    const popupMessage = document.createElement("div");
+    popupMessage.className = "popup-message";
+    popupMessage.textContent = message;
+    document.body.appendChild(popupMessage);
+    
+    setTimeout(() => {
+        popupMessage.remove();
+    }, 3000); // Display for 3 seconds
+}
+
 // Mobile menu toggle
 hamburgerBtn.addEventListener("click", () => {
     navbarMenu.classList.toggle("show-menu");
@@ -197,8 +209,26 @@ async function decryptFile(encryptedFile, key, iv) {
     return new Blob([decryptedContent]); // Return Blob for download
 }
 
+// Function to simulate file deletion and show notification
+async function deleteFile(fileId) {
+    try {
+        const response = await fetch(`/delete/${fileId}`, { method: 'DELETE' });
+        if (response.ok) {
+            showPopupMessage('The file you tried to access has been deleted automatically.');
+        } else {
+            console.error('Failed to delete file.');
+        }
+    } catch (error) {
+        console.error('Error deleting file:', error);
+    }
+}
+
 // Attach event listener to the form
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('uploadForm');
     form.addEventListener('submit', uploadEncryptedFile);
 });
+
+// Example usage of deleteFile function
+// Call this function with the appropriate file ID when needed
+// deleteFile('your-file-id-here');

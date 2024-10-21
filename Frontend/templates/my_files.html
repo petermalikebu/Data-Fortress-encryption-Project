@@ -9,7 +9,7 @@ My Files - SecureFile
     <h2 class="text-center mb-4">My Uploaded Files</h2>
 
     {% if files_count > 0 %}
-        <table class="table table-striped">
+        <table class="table table-striped table-hover">
             <thead>
                 <tr>
                     <th scope="col">File Name</th>
@@ -23,12 +23,12 @@ My Files - SecureFile
                     <td>
                         <form action="{{ url_for('download_file') }}" method="POST" class="d-inline">
                             <input type="hidden" name="filename" value="{{ file['filename'] }}">
-                            <input type="password" name="password" placeholder="Decryption Password" required>
+                            <input type="password" name="password" placeholder="Decryption Password" required class="form-control d-inline" style="width: 150px; display: inline-block;">
                             <button type="submit" class="btn btn-primary btn-sm">Download</button>
                         </form>
                         <form action="{{ url_for('my_files') }}" method="POST" class="d-inline">
                             <input type="hidden" name="file_id" value="{{ file['_id'] }}">
-                            <input type="password" name="password" placeholder="Delete Password" required>
+                            <input type="password" name="password" placeholder="Delete Password" required class="form-control d-inline" style="width: 150px; display: inline-block;">
                             <button type="submit" name="delete" class="btn btn-danger btn-sm">Delete</button>
                         </form>
                     </td>
@@ -49,12 +49,35 @@ My Files - SecureFile
 {% block custom_styles %}
 <style>
     h2 {
-        color: #CED2D6FF; /* Dark gray color for the heading */
+        color: #343a40; /* Dark gray color for the heading */
         font-family: 'Arial', sans-serif; /* Change font family */
         font-weight: bold; /* Make the font bold */
     }
+
     .btn {
         min-width: 100px; /* Minimum button width */
+        transition: background-color 0.3s, transform 0.2s; /* Smooth transitions */
+    }
+
+    /* Button Hover Effects */
+    .btn-primary:hover {
+        background-color: #0056b3; /* Darker blue for download button on hover */
+        transform: translateY(-2px); /* Lift effect on hover */
+    }
+
+    .btn-danger:hover {
+        background-color: #c82333; /* Darker red for delete button on hover */
+        transform: translateY(-2px); /* Lift effect on hover */
+    }
+
+    /* Table Hover Effects */
+    .table-hover tbody tr:hover {
+        background-color: #f1f1f1; /* Light gray background on row hover */
+    }
+
+    /* Input Styles */
+    .form-control {
+        display: inline-block; /* Keep inputs inline */
     }
 </style>
 {% endblock %}

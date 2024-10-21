@@ -33,6 +33,7 @@ Upload File - SecureFile
 
 <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
 
+{% block custom_styles %}
 <style>
     body {
         background: linear-gradient(135deg, #6b6b6b, #4e4e4e);
@@ -58,4 +59,5 @@ Upload File - SecureFile
         background-color: rgba(255, 255, 255, 0.9) !important; /* Semi-transparent background for form */
     }
 </style>
+{% endblock %}
 {% endblock %}

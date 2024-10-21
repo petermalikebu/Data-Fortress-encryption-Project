@@ -18,7 +18,7 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-image: url('../images/good\ \(1\).jpg'); /* Update this with the correct image path */
+  background: linear-gradient(135deg, #6b6b6b, #4e4e4e);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

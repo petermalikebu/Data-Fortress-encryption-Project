@@ -5,62 +5,114 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Dashboard - SecureFile{% endblock %}</title>
+
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+
+    <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="{{ url_for('dashboard') }}">SecureFile</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav">
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('upload_file') }}">Upload</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('view_audit_logs') }}">Audit Logs</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('my_files') }}">Manage Files</a> <!-- Added this line -->
-                </li>
-            </ul>
-            <span class="navbar-text ml-auto">{{ session['email'] }}</span>
-            <!-- Logout button -->
-            <form class="form-inline ml-3" action="{{ url_for('logout') }}" method="POST">
-                <button class="btn btn-custom my-2 my-sm-0" type="submit">Logout</button>
-            </form>
-        </div>
-    </nav>
 
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+    <a class="navbar-brand" href="{{ url_for('dashboard') }}">SecureFile</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('upload_file') }}">Upload</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('view_audit_logs') }}">Audit Logs</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('my_files') }}">Manage Files</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('received_files') }}">Received Files</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('share_file') }}">Share</a>
+            </li>
+        </ul>
+        <span class="navbar-text ml-auto font-weight-bold">{{ session['email'] }}</span>
+        <!-- Logout button -->
+        <li class="form-inline ml-3">
+            <a href="{{ url_for('logout') }}" class="btn btn-custom my-2 my-sm-0">Logout</a>
+        </li>        
+    </div>
+</nav>
+
+
+
+    <!-- Main Content -->
     <div class="container mt-5">
         {% block content %}{% endblock %}
     </div>
 
+    <!-- Custom Styles -->
     {% block custom_styles %}
     <style>
+        /* Custom styles for buttons and navbar */
         .btn-custom {
-            background-color: #120329FF; /* Bootstrap Danger color */
+            background: linear-gradient(135deg, #6b6b6b, #4e4e4e);
             color: white;
-            border-radius: 20px; /* Rounded corners */
-            border: none; /* Remove default border */
-            padding: 10px 20px; /* Increased padding for a better feel */
-            font-weight: bold; /* Bold text */
-            transition: background-color 0.3s, transform 0.3s; /* Smooth transition for hover effect */
+            border-radius: 20px;
+            border: none;
+            padding: 10px 20px;
+            font-weight: bold;
+            transition: background-color 0.3s ease, transform 0.3s ease;
         }
         .btn-custom:hover {
-            background-color: #F0EDEDFF; /* Darker shade for hover effect */
-            transform: translateY(-2px); /* Lift effect on hover */
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Shadow for depth */
+            background-color: #F0EDEDFF;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
         }
-        
+
+        /* Navbar Styling */
+        .navbar {
+            padding: 1rem 2rem;
+        }
+
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #120329FF;
+        }
+
+        .navbar-nav .nav-link {
+            font-size: 1rem;
+            font-weight: 500;
+            margin-left: 10px;
+            transition: color 0.3s ease;
+        }
+        .navbar-nav .nav-link:hover {
+            color: #120329FF;
+        }
+
+        .navbar-text {
+            font-size: 1rem;
+            margin-right: 1rem;
+        }
+
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            .navbar-nav .nav-link {
+                font-size: 0.9rem;
+                margin-left: 0;
+                padding: 0.5rem;
+            }
+        }
     </style>
     {% endblock %}
 
+    <!-- JavaScript and Bootstrap dependencies -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>

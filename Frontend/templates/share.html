@@ -1,0 +1,28 @@
+<!-- frontend/templates/share.html -->
+{% extends "dashboard_base.html" %}
+
+{% block title %}
+    Share a File - SecureFile
+{% endblock %}
+
+{% block content %}
+    <div class="container mt-5" style="max-width: 600px; background-color: #f8f9fa; border-radius: 10px; padding: 20px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+        <h2 style="text-align: center; color: #007bff; margin-bottom: 20px;">Share a File</h2>
+        <form action="{{ url_for('share_file') }}" method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="recipient_email" style="font-weight: bold; color: white;">Recipient Email:</label>
+                <input type="email" class="form-control" id="recipient_email" name="recipient_email" required style="border: 1px solid #007bff; border-radius: 5px;">
+            </div>
+            <div class="form-group">
+                <label for="file" style="font-weight: bold; color: white;">Choose File:</label>
+                <input type="file" class="form-control-file" id="file" name="file" required style="border: 1px solid #007bff; border-radius: 5px;">
+            </div>
+            <div class="form-group">
+                <label for="encryption_key" style="font-weight: bold; color: white;">Encryption Key:</label>
+                <input type="password" class="form-control" id="encryption_key" name="encryption_key" required style="border: 1px solid #007bff; border-radius: 5px;">
+                <small class="form-text text-muted" style="font-size: 0.9em; color: #6c757d;">This key is used to encrypt the file before sharing. Share it securely with the recipient.</small>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 10px; border-radius: 5px;">Share File</button>
+        </form>
+    </div>
+{% endblock %}

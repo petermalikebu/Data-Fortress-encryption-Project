@@ -280,13 +280,6 @@ def dashboard():
         flash("You need to log in first.")
         return redirect(url_for('login'))
 
-@app.route('/logout', methods=['POST'])
-def logout():
-    session.pop('email', None)
-    session.pop('user_role', None)
-    flash("Logged out successfully.")
-    return redirect(url_for('login'))
-
 # Allowed file extensions and max file size (5 MB)
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
 MAX_FILE_SIZE = 5 * 1024 * 1024
@@ -445,6 +438,167 @@ def download_file():
             return redirect(url_for('my_files'))
 
     return render_template('download.html')
+
+# Route to share a file with another user
+@app.route('/share', methods=['GET', 'POST'])
+def share_file():
+    if 'email' not in session:
+        flash("You need to log in first.")
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        file = request.files['file']
+        recipient_email = request.form.get('recipient_email')
+        encryption_key = request.form.get('encryption_key')
+
+        # Verify recipient exists
+        recipient = mongo.db.users.find_one({'email': recipient_email})
+        if not recipient:
+            flash("Recipient not found.")
+            return redirect(url_for('dashboard'))
+
+        # Encrypt and store the file
+        filename = secure_filename(file.filename)
+        aes_key = sha256(encryption_key.encode()).digest()
+        file_data = file.read()
+        nonce, ciphertext = encrypt_file(file_data, aes_key)
+        hashed_key = bcrypt.hashpw(encryption_key.encode(), bcrypt.gensalt())
+
+        # Store the file with metadata
+        mongo.db.files.insert_one({
+            'filename': filename,
+            'nonce': nonce,
+            'ciphertext': ciphertext,
+            'sender': session['email'],
+            'recipient': recipient_email,
+            'delete_password': hashed_key,
+            'access_attempts': 0,
+            'status': 'pending',
+            'timestamp': datetime.utcnow()
+        })
+
+        # Log the sharing action in the audit logs
+        mongo.db.audit_logs.insert_one({
+            'timestamp': datetime.utcnow(),
+            'action': 'File Shared',
+            'user': session['email'],
+            'details': f"Shared file '{filename}' with {recipient_email}."
+        })
+
+        flash(f"File '{filename}' shared with {recipient_email}.")
+        return redirect(url_for('dashboard'))
+
+    # Render the share form if it's a GET request
+    return render_template('share.html')
+
+# Route to view received files
+@app.route('/received_files', methods=['GET', 'POST'])
+def received_files():
+    if 'email' not in session:
+        flash("You need to log in first.")
+        return redirect(url_for('login'))
+
+    user_email = session['email']
+
+    # Retrieve files shared with the logged-in user
+    shared_files = mongo.db.files.find({'recipient': user_email, 'status': 'pending'})
+
+    # Log the action of viewing received files
+    mongo.db.audit_logs.insert_one({
+        'timestamp': datetime.now(timezone.utc),
+        'action': 'View Received Files',
+        'user': session['email'],
+        'details': "Viewed received files."
+    })
+
+    # Render a page with a list of received files
+    return render_template('received_files.html', shared_files=shared_files)
+@app.route('/download_shared_file/<file_id>', methods=['GET', 'POST'])
+def download_shared_file(file_id):
+    if 'email' not in session:
+        flash("You do not have permission to access this.")
+        return redirect(url_for('dashboard'))
+
+    file_record = mongo.db.files.find_one({'_id': ObjectId(file_id), 'recipient': session['email']})
+    if not file_record:
+        flash("File not found or you don't have access to it.")
+        return redirect(url_for('received_files'))
+
+    if request.method == 'POST':
+        encryption_key = request.form.get('encryption_key')
+        aes_key = sha256(encryption_key.encode()).digest()
+
+        # Increment access attempts
+        access_attempts = file_record.get('access_attempts', 0)
+
+        if access_attempts < 2:
+            try:
+                decrypted_data = decrypt_file(file_record['ciphertext'], aes_key, file_record['nonce'])
+
+                # Log the successful download action
+                mongo.db.audit_logs.insert_one({
+                    'timestamp': datetime.utcnow(),
+                    'action': 'Download Shared File',
+                    'user': session['email'],
+                    'details': f"Downloaded shared file '{file_record['filename']}'."
+                })
+
+                # Reset access attempts to zero on successful download
+                mongo.db.files.update_one(
+                    {'_id': ObjectId(file_id)},
+                    {'$set': {'access_attempts': 0}}
+                )
+
+                return send_file(
+                    io.BytesIO(decrypted_data),
+                    as_attachment=True,
+                    download_name=file_record['filename']
+                )
+            except Exception as e:
+                # Log the failed decryption attempt with error details
+                mongo.db.audit_logs.insert_one({
+                    'timestamp': datetime.now(timezone.utc),
+                    'action': 'Failed Decryption Attempt',
+                    'user': session['email'],
+                    'details': f"Failed to decrypt file '{file_record['filename']}' due to incorrect encryption key. Error: {str(e)}"
+                })
+
+                # Increment the access attempt counter
+                mongo.db.files.update_one(
+                    {'_id': ObjectId(file_id)},
+                    {'$inc': {'access_attempts': 1}}
+                )
+
+                if access_attempts + 1 >= 2:
+                    # Delete the file
+                    mongo.db.files.delete_one({'_id': ObjectId(file_id)})
+
+                    # Log the file deletion
+                    mongo.db.audit_logs.insert_one({
+                        'timestamp': datetime.now(timezone.utc),
+                        'action': 'File Deleted Due to Failed Attempts',
+                        'user': session['email'],
+                        'details': f"File '{file_record['filename']}' deleted after multiple failed decryption attempts."
+                    })
+
+                flash("Decryption failed. Please check your encryption key.")
+                return redirect(url_for('received_files'))
+        else:
+            # Handle case when attempts exceed the limit
+            mongo.db.files.delete_one({'_id': ObjectId(file_id)})
+            mongo.db.audit_logs.insert_one({
+                'timestamp': datetime.utcnow(),
+                'action': 'File Deleted Due to Failed Attempts',
+                'user': session['email'],
+                'details': f"File '{file_record['filename']}' deleted after exceeding decryption attempts."
+            })
+
+            flash("You have exceeded the maximum number of attempts. The file has been deleted.")
+            return redirect(url_for('received_files'))
+
+    return render_template('download_shared_file.html', file_id=file_id, filename=file_record['filename'])
+
+
 # Profile route should be outside the download_file function
 @app.route('/profile')
 @requires_role('user')
@@ -453,8 +607,8 @@ def profile():
         user = mongo.db.users.find_one({'email': session['email']})
         return render_template('profile.html', user=user)
     else:
-        flash("You need to log in first.")
-        return redirect(url_for('login'))
+        flash("You do  not have permission to access this.")
+        return redirect(url_for('dashboard'))
     
 @requires_role('user')
 def profile():
@@ -462,8 +616,8 @@ def profile():
         user = mongo.db.users.find_one({'email': session['email']})
         return render_template('profile.html', user=user)
     else:
-        flash("You need to log in first.")
-        return redirect(url_for('login'))
+        flash("You do not have permission to access this.")
+        return redirect(url_for('dashboard'))
     
 @app.route('/admin')
 @requires_role('admin')
@@ -473,8 +627,8 @@ def admin_dashboard():
         users = mongo.db.users.find()
         return render_template('admin_dashboard.html', files=files, users=users)
     else:
-        flash("You need to log in first.")
-        return redirect(url_for('login'))
+        flash("You do not have permission to access this.")
+        return redirect(url_for('dashboard'))
 
 # Assume you have a function that checks user roles
 @app.route('/audit_logs', methods=['GET', 'POST'])
@@ -498,8 +652,16 @@ def view_audit_logs():
         # Render the template with the logs for viewing
         return render_template('audit_logs.html', logs=logs)
     else:
-        flash("You need to log in first.")
-        return redirect(url_for('login'))
+        flash("You Do not have the permission to access this.")
+        return redirect(url_for('dashboard'))
+    
+
+@app.route('/logout', methods=['GET'])
+def logout():
+    session.pop('email', None)
+    session.pop('user_role', None)
+    flash("Logged out successfully.")
+    return redirect(url_for('index'))
 
 
 if __name__ == '__main__':
