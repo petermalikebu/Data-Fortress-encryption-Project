@@ -3,11 +3,13 @@
         "AESGCM",
         "bson",
         "ciphertext",
+        "encryptor",
         "OAEP",
         "pymongo",
         "pyotp",
         "qrcode",
         "totp",
+        "unpad",
         "urandom",
         "werkzeug"
     ]

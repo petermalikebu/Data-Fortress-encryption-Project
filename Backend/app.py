@@ -1,59 +1,52 @@
 import json
 import csv
+import os
+import base64
+from io import BytesIO
+from datetime import datetime, timezone
+import threading
+import time
+import schedule
 from hashlib import sha256
-from flask import Response
-from flask import Flask, render_template, make_response, request, redirect, url_for, session, flash, send_file
+
+from flask import (
+    Flask,
+    render_template,
+    make_response,
+    request,
+    redirect,
+    url_for,
+    session,
+    flash,
+    send_file
+)
 from flask_pymongo import PyMongo
 from pymongo import MongoClient
 from bson import ObjectId
 import bcrypt
 import qrcode
-import os
-import base64
-from PIL import Image
-import smtplib
-from email.mime.text import MIMEText
 from werkzeug.utils import secure_filename
-from werkzeug.security import check_password_hash, generate_password_hash
-import pyotp  # For TOTP-based MFA
+from werkzeug.security import generate_password_hash, check_password_hash
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import serialization, hashes
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
-from base64 import urlsafe_b64encode, urlsafe_b64decode
-from io import BytesIO
-import threading
-import schedule
-import time
+import pyotp  # For TOTP-based MFA
+import smtplib
+from email.mime.text import MIMEText
 from functools import wraps
-from datetime import datetime, timedelta, timezone 
+from os import urandom
+import tempfile
 
-# Define the requires_role decorator
-def requires_role(role):
-    def decorator(f):
-        @wraps(f)
-        def decorated_function(*args, **kwargs):
-            # Check if the user is logged in and has the required role
-            if 'user_role' not in session or session['user_role'] != role:
-                flash("You do not have permission to access this page.", "danger")
-                return redirect(url_for('login'))  # Redirect to login or another appropriate page
-            return f(*args, **kwargs)
-        return decorated_function
-    return decorator
-
-# MongoDB connection URI
-mongo_uri = "mongodb://Database:admin@hostname:27017/admin"
-client = MongoClient(mongo_uri)
-db = client['database_name']
 
 # AES Key and RSA Key Initialization (global scope to allow rotation)
 aes_key = AESGCM.generate_key(bit_length=256)
 private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
 public_key = private_key.public_key()
 
-# Utility functions
-def derive_key(password, salt):
+def derive_key(password: str, salt: bytes) -> bytes:
     """Derives AES key from password."""
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
@@ -64,17 +57,42 @@ def derive_key(password, salt):
     )
     return kdf.derive(password.encode())
 
-def encrypt_file(file_data, aes_key):
+def encrypt_file(file_data, encryption_key):
     """Encrypts file data using AES-256-GCM."""
+    # Ensure encryption_key is in bytes format
+    if isinstance(encryption_key, str):
+        encryption_key = encryption_key.encode()  # Convert to bytes if it's a string
+
+    # Deriving a 256-bit AES key
+    aes_key = sha256(encryption_key).digest()
+
+    # Generate a random nonce (12 bytes)
+    nonce = os.urandom(12)
+
+    # Create a Cipher object with AES-GCM
     aesgcm = AESGCM(aes_key)
-    nonce = os.urandom(12)  # 96-bit nonce
     ciphertext = aesgcm.encrypt(nonce, file_data, None)
+
     return nonce, ciphertext
 
-def decrypt_file(nonce, ciphertext, aes_key):
-    """Decrypts file data using AES-256-GCM."""
+
+def decrypt_file(nonce, ciphertext, encryption_key):
+    """Decrypts file data using AES-256-GCM and returns decrypted data."""
+    # Ensure encryption_key is in bytes format
+    if isinstance(encryption_key, str):
+        encryption_key = encryption_key.encode()  # Convert to bytes if it's a string
+
+    aes_key = sha256(encryption_key).digest()
     aesgcm = AESGCM(aes_key)
-    return aesgcm.decrypt(nonce, ciphertext, None)
+
+    try:
+        # Decrypt the binary data
+        decrypted_data = aesgcm.decrypt(nonce, ciphertext, None)
+        return decrypted_data
+    except Exception as e:
+        print(f"An error occurred while decrypting the file: {str(e)}")
+        return None
+
 
 def wrap_aes_key(aes_key, public_key):
     """Wraps AES key using RSA public key."""
@@ -115,16 +133,31 @@ def rotate_keys():
     print("Keys rotated successfully")
 
 # Schedule the key rotation every 12 hours
-schedule.every(12).hours.do(rotate_keys)
+# Uncomment the line below if you're using a scheduling library
+# schedule.every(12).hours.do(rotate_keys)
 
 def log_audit(action, user, details):
     """Logs an audit entry for the given action."""
-    mongo.db.audit_logs.insert_one({
-        "timestamp": datetime.utcnow(),
+    db.audit_logs.insert_one({
+        "timestamp": datetime.now(timezone.utc),  # Use timezone-aware datetime
         "action": action,
         "user": user,
         "details": details
     })
+
+# Define the requires_role decorator
+def requires_role(role):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            # Check if the user is logged in and has the required role
+            if 'user_role' not in session or session['user_role'] != role:
+                flash("You do not have permission to access this page.", "danger")
+                return redirect(url_for('login'))  # Redirect to login or another appropriate page
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
 
 # Flask app configuration
 app = Flask(__name__, template_folder="../frontend/templates", static_folder="../frontend/static")
@@ -402,6 +435,8 @@ def my_files():
     else:
         flash("You need to log in first.")
         return redirect(url_for('login'))
+    
+
 @app.route('/download', methods=['GET', 'POST'])
 def download_file():
     if 'email' not in session:
@@ -419,27 +454,39 @@ def download_file():
             # Derive the encryption key from the provided password
             aes_key = sha256(password.encode()).digest()
 
-            nonce = file_entry['nonce']
-            ciphertext = file_entry['ciphertext']
+            # Convert nonce and ciphertext to bytes
+            nonce = bytes(file_entry['nonce'])
+            ciphertext = bytes(file_entry['ciphertext'])
+
+            # Temporary output path for decrypted file
+            output_path = os.path.join(tempfile.gettempdir(), filename)
 
             try:
-                # Decrypt the file (you need your own `decrypt_file` method)
-                file_data = decrypt_file(nonce, ciphertext, aes_key)
-                return send_file(
-                    BytesIO(file_data),
-                    as_attachment=True,
-                    download_name=file_entry['filename']
-                )
+                # Decrypt the file (using the updated decrypt_file method)
+                decrypted_file_path = decrypt_file(nonce, ciphertext, aes_key, output_path)
+
+                if decrypted_file_path:
+                    # Send the decrypted file to the user
+                    return send_file(
+                        decrypted_file_path,
+                        as_attachment=True,
+                        download_name=filename
+                    )
+                else:
+                    flash("Failed to decrypt the file. Please check the password.")
+                    return redirect(url_for('received_files'))
+
             except Exception as e:
-                flash(f"An error occurred during file decryption: {str(e)}")
-                return redirect(url_for('my_files'))
+                flash(f"An error occurred while decrypting the file: {str(e)}")
+                print(f"Decryption error: {str(e)}")
+                return redirect(url_for('received_files'))
         else:
             flash("File not found.")
             return redirect(url_for('my_files'))
 
     return render_template('download.html')
 
-# Route to share a file with another user
+
 @app.route('/share', methods=['GET', 'POST'])
 def share_file():
     if 'email' not in session:
@@ -447,9 +494,19 @@ def share_file():
         return redirect(url_for('login'))
 
     if request.method == 'POST':
-        file = request.files['file']
+        file = request.files.get('file')
         recipient_email = request.form.get('recipient_email')
         encryption_key = request.form.get('encryption_key')
+
+        # Validate inputs
+        if not file or not recipient_email or not encryption_key:
+            flash("Please provide all required fields.")
+            return redirect(url_for('dashboard'))
+
+        # Verify encryption key length
+        if len(encryption_key) < 8:
+            flash("Encryption key must be at least 8 characters long.")
+            return redirect(url_for('dashboard'))
 
         # Verify recipient exists
         recipient = mongo.db.users.find_one({'email': recipient_email})
@@ -461,7 +518,9 @@ def share_file():
         filename = secure_filename(file.filename)
         aes_key = sha256(encryption_key.encode()).digest()
         file_data = file.read()
-        nonce, ciphertext = encrypt_file(file_data, aes_key)
+        nonce, ciphertext = encrypt_file(file_data, aes_key)  # Ensure this function is defined
+
+        # Hash the encryption key and store it as a string
         hashed_key = bcrypt.hashpw(encryption_key.encode(), bcrypt.gensalt())
 
         # Store the file with metadata
@@ -488,115 +547,107 @@ def share_file():
         flash(f"File '{filename}' shared with {recipient_email}.")
         return redirect(url_for('dashboard'))
 
-    # Render the share form if it's a GET request
     return render_template('share.html')
 
-# Route to view received files
-@app.route('/received_files', methods=['GET', 'POST'])
+@app.route('/received_files', methods=['GET'])
 def received_files():
     if 'email' not in session:
         flash("You need to log in first.")
         return redirect(url_for('login'))
 
     user_email = session['email']
-
-    # Retrieve files shared with the logged-in user
-    shared_files = mongo.db.files.find({'recipient': user_email, 'status': 'pending'})
+    shared_files = list(mongo.db.files.find({'recipient': user_email, 'status': 'pending'}))
 
     # Log the action of viewing received files
     mongo.db.audit_logs.insert_one({
-        'timestamp': datetime.now(timezone.utc),
+        'timestamp': datetime.utcnow(),
         'action': 'View Received Files',
         'user': session['email'],
         'details': "Viewed received files."
     })
 
-    # Render a page with a list of received files
     return render_template('received_files.html', shared_files=shared_files)
-@app.route('/download_shared_file/<file_id>', methods=['GET', 'POST'])
+
+@app.route('/download_shared_file/<file_id>', methods=['POST'])
 def download_shared_file(file_id):
     if 'email' not in session:
         flash("You do not have permission to access this.")
         return redirect(url_for('dashboard'))
 
+    # Fetch the file record from the database
     file_record = mongo.db.files.find_one({'_id': ObjectId(file_id), 'recipient': session['email']})
     if not file_record:
         flash("File not found or you don't have access to it.")
         return redirect(url_for('received_files'))
 
-    if request.method == 'POST':
-        encryption_key = request.form.get('encryption_key')
-        aes_key = sha256(encryption_key.encode()).digest()
+    encryption_key = request.form.get('encryption_key')
 
-        # Increment access attempts
-        access_attempts = file_record.get('access_attempts', 0)
+    # Increment access attempts
+    access_attempts = file_record.get('access_attempts', 0)
 
-        if access_attempts < 2:
-            try:
-                decrypted_data = decrypt_file(file_record['ciphertext'], aes_key, file_record['nonce'])
+    # Check if the encryption key matches the hashed key
+    if bcrypt.checkpw(encryption_key.encode(), file_record['delete_password']):
+        try:
+            # Decrypt the file using the provided encryption key
+            aes_key = sha256(encryption_key.encode()).digest()
+            nonce = bytes(file_record['nonce'])  # Ensure this is bytes
+            ciphertext = bytes(file_record['ciphertext'])  # Ensure this is bytes
 
-                # Log the successful download action
-                mongo.db.audit_logs.insert_one({
-                    'timestamp': datetime.utcnow(),
-                    'action': 'Download Shared File',
-                    'user': session['email'],
-                    'details': f"Downloaded shared file '{file_record['filename']}'."
-                })
+            # Get the decrypted data
+            decrypted_data = decrypt_file(nonce, ciphertext, aes_key)
+            if decrypted_data is None:
+                raise ValueError("Decryption failed.")
 
-                # Reset access attempts to zero on successful download
-                mongo.db.files.update_one(
-                    {'_id': ObjectId(file_id)},
-                    {'$set': {'access_attempts': 0}}
-                )
+            # Log the successful download action
+            mongo.db.audit_logs.insert_one({
+                'timestamp': datetime.utcnow(),
+                'action': 'Download Shared File',
+                'user': session['email'],
+                'details': f"Downloaded shared file '{file_record['filename']}' successfully."
+            })
 
-                return send_file(
-                    io.BytesIO(decrypted_data),
-                    as_attachment=True,
-                    download_name=file_record['filename']
-                )
-            except Exception as e:
-                # Log the failed decryption attempt with error details
-                mongo.db.audit_logs.insert_one({
-                    'timestamp': datetime.now(timezone.utc),
-                    'action': 'Failed Decryption Attempt',
-                    'user': session['email'],
-                    'details': f"Failed to decrypt file '{file_record['filename']}' due to incorrect encryption key. Error: {str(e)}"
-                })
+            # Reset access attempts to zero on successful download
+            mongo.db.files.update_one(
+                {'_id': ObjectId(file_id)},
+                {'$set': {'access_attempts': 0}}
+            )
 
-                # Increment the access attempt counter
-                mongo.db.files.update_one(
-                    {'_id': ObjectId(file_id)},
-                    {'$inc': {'access_attempts': 1}}
-                )
+            # Send the decrypted file to the user
+            return send_file(
+                BytesIO(decrypted_data),
+                as_attachment=True,
+                download_name=file_record['filename']
+            )
 
-                if access_attempts + 1 >= 2:
-                    # Delete the file
-                    mongo.db.files.delete_one({'_id': ObjectId(file_id)})
+        except Exception as e:
+            flash(f"An error occurred while decrypting the file: {str(e)}")
+            return redirect(url_for('received_files'))
 
-                    # Log the file deletion
-                    mongo.db.audit_logs.insert_one({
-                        'timestamp': datetime.now(timezone.utc),
-                        'action': 'File Deleted Due to Failed Attempts',
-                        'user': session['email'],
-                        'details': f"File '{file_record['filename']}' deleted after multiple failed decryption attempts."
-                    })
+    else:
+        # Increment the access attempt counter
+        access_attempts += 1
+        mongo.db.files.update_one(
+            {'_id': ObjectId(file_id)},
+            {'$set': {'access_attempts': access_attempts}}
+        )
 
-                flash("Decryption failed. Please check your encryption key.")
-                return redirect(url_for('received_files'))
-        else:
-            # Handle case when attempts exceed the limit
+        if access_attempts >= 2:
+            # Automatically delete the file after two failed attempts
             mongo.db.files.delete_one({'_id': ObjectId(file_id)})
+
+            # Log the deletion
             mongo.db.audit_logs.insert_one({
                 'timestamp': datetime.utcnow(),
                 'action': 'File Deleted Due to Failed Attempts',
                 'user': session['email'],
-                'details': f"File '{file_record['filename']}' deleted after exceeding decryption attempts."
+                'details': f"File '{file_record['filename']}' deleted after multiple failed decryption attempts."
             })
 
             flash("You have exceeded the maximum number of attempts. The file has been deleted.")
             return redirect(url_for('received_files'))
 
-    return render_template('download_shared_file.html', file_id=file_id, filename=file_record['filename'])
+        flash("Decryption failed. Please check your encryption key.")
+        return redirect(url_for('received_files'))
 
 
 # Profile route should be outside the download_file function
