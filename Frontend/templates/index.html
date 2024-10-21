@@ -1,0 +1,84 @@
+<!-- frontend/templates/index.html -->
+{% extends "base.html" %}
+
+{% block hero %}
+<!-- Optionally, customize or omit the hero section for the index page -->
+<div class="hero bg-light text-dark p-5 mb-4 rounded">
+    <div class="container">
+        <h1 class="display-4">Welcome to Secure File Encryption System</h1>
+        <p class="lead">Your files are secure with our state-of-the-art encryption technology.</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block features %}
+<!-- Optionally, customize or omit the features section for the index page -->
+<div class="features text-center mb-5">
+    <div class="container">
+        <h2>Why Choose Us?</h2>
+        <div class="row mt-4">
+            <div class="col-md-4">
+                <h3>Security</h3>
+                <p>Your data is encrypted with the latest technology.</p>
+            </div>
+            <div class="col-md-4">
+                <h3>Usability</h3>
+                <p>User-friendly interface for easy file management.</p>
+            </div>
+            <div class="col-md-4">
+                <h3>Support</h3>
+                <p>24/7 support for all your needs.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5 text-center">
+    {% if admin %}
+    <!-- Show admin controls -->
+    <div class="mt-4">
+        <h2 class="text-success">Admin Controls</h2>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-info btn-lg mx-2">Manage Users</a>
+        <a href="{{ url_for('view_audit_logs') }}" class="btn btn-secondary btn-lg mx-2">View Audit Logs</a>
+    </div>
+    {% else %}
+    <!-- Show user-specific controls -->
+    <div class="mt-4">
+        <h2 class="text-primary">User Controls</h2>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg mx-2">Go to Dashboard</a>
+    </div>
+    {% endif %}
+
+    <form action="{{ url_for('logout') }}" method="post" class="mt-4">
+        <button type="submit" class="btn btn-danger btn-lg">Logout</button>
+    </form>
+</div>
+
+<!-- Custom Styles -->
+<style>
+    /* Hero Section Styles */
+    .hero {
+        border-radius: 10px; /* Rounded corners for hero */
+    }
+
+    /* Features Section Styles */
+    .features h3 {
+        color: #343a40; /* Dark gray color for headings */
+        font-weight: bold; /* Bold headings */
+    }
+
+    /* Button Sizes */
+    .btn-lg {
+        min-width: 180px; /* Minimum button width for large buttons */
+        border-radius: 25px; /* Rounded corners */
+        transition: background-color 0.3s, transform 0.2s; /* Smooth transitions */
+    }
+
+    /* Button Hover Effects */
+    .btn-info:hover, .btn-secondary:hover, .btn-primary:hover, .btn-danger:hover {
+        transform: translateY(-2px); /* Lift effect on hover */
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,14 @@
+{
+    "cSpell.words": [
+        "AESGCM",
+        "bson",
+        "ciphertext",
+        "OAEP",
+        "pymongo",
+        "pyotp",
+        "qrcode",
+        "totp",
+        "urandom",
+        "werkzeug"
+    ]
+}

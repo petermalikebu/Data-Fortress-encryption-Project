@@ -1,0 +1,39 @@
+flask
+flask_pymongo 
+MongoClient
+pymongo
+bson
+ObjectId
+bcrypt
+qrcode
+os
+base64
+PIL
+Image
+smtplib
+email.mine.text
+MIMEText
+werkzeug.utils
+werkzeug.security
+pyotp
+cryptography.hazmat.primitives.cipher.aead
+AESGCM
+cryptography.hazmat.primitives.asymmetric
+cryptography.hazmat.primitives.kdf.pbkdf2
+PBKDF2HMAC
+cryptography.hazmat.primitives
+serialization
+cryptography.hazmat.backends
+io
+threading
+schedule
+time
+functools
+datetime
+
+This project code snippet defines several crucial components for a Flask application focused on secure file handling and user management. 
+It begins with a `requires_role` decorator that enforces role-based access control, ensuring only users with the appropriate role can access specific views. 
+The application connects to a MongoDB database for data storage and retrieval, utilizing a secure connection URI. 
+For encryption, it generates an AES-256 key for encrypting files and an RSA key pair for wrapping the AES key, allowing for secure key management and periodic rotation every 12 hours to enhance security. 
+Utility functions are included for key derivation, file encryption/decryption, and wrapping/unwrapping keys, while audit logging functions capture user actions to maintain accountability. 
+Finally, the Flask app is configured with a secret key for session management and paths for serving frontend assets, creating a secure and organized framework for managing sensitive data.

@@ -1,0 +1,116 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}
+Audit Logs - SecureFile
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5 p-4 shadow-lg rounded" style="background-color: #ffffff;">
+    <h2 class="text-center mb-4" style="color: #333;">Audit Logs</h2>
+
+    <!-- Search Bar -->
+    <div class="mb-3">
+        <input type="text" id="searchInput" class="form-control" placeholder="Search logs..." aria-label="Search Logs" style="border-radius: 0.5rem;">
+    </div>
+
+    <!-- Table Card -->
+    <div class="table-responsive">
+        <div class="card">
+            <div class="card-body">
+                <table class="table table-striped table-hover" id="auditLogsTable">
+                    <thead class="thead-dark" style="background-color: #343a40;">
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Action</th>
+                            <th>User</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                        <tr>
+                            <td>{{ log.timestamp }}</td>
+                            <td>{{ log.action }}</td>
+                            <td>{{ log.user }}</td>
+                            <td>{{ log.details }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="mt-4 text-center">
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Admin Dashboard</a>
+        <form method="POST" action="{{ url_for('view_audit_logs') }}" class="d-inline">
+            <button type="submit" class="btn btn-success"><i class="fas fa-download"></i> Download Logs</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Filter logs by search input
+    document.getElementById('searchInput').addEventListener('keyup', function() {
+        const value = this.value.toLowerCase();
+        const rows = document.querySelectorAll('#auditLogsTable tbody tr');
+        
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(value) ? '' : 'none';
+        });
+    });
+</script>
+
+<style>
+    /* Custom styles for the audit logs page */
+    h2 {
+        color: #343a40; /* Dark gray for the heading */
+        font-family: 'Arial', sans-serif;
+    }
+
+    /* Table styles */
+    .table {
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
+
+    .thead-dark th {
+        background-color: #343a40;
+        color: #ffffff;
+    }
+
+    .table-striped tbody tr:nth-of-type(odd) {
+        background-color: #f8f9fa;
+    }
+
+    .table-striped tbody tr:nth-of-type(even) {
+        background-color: #ffffff;
+    }
+
+    .table tbody tr:hover {
+        background-color: #f1f1f1;
+    }
+
+    /* Card styling */
+    .card {
+        border: 1px solid #ced4da;
+        border-radius: 0.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    /* Button styling */
+    .btn-secondary {
+        margin-right: 10px;
+    }
+
+    .btn-success {
+        margin-left: 10px;
+    }
+</style>
+{% endblock %}

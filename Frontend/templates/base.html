@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Secure File Encryption System{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(to right, #2C3E50, #082225FF);
+            color: #fff;
+            font-family: 'Arial', sans-serif;
+        }
+
+        /* Hero Section Styling */
+        .hero {
+            padding: 50px 20px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            margin-top: 50px;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .hero:hover {
+            transform: scale(1.05);
+        }
+
+        /* Typography and content styling */
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        .hero .encouraging-message {
+            font-size: 1.1rem;
+            font-style: italic;
+            margin-top: 20px;
+        }
+
+        .login-message {
+            font-size: 1.2rem;
+            margin: 30px 0;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Buttons Styling */
+        .hero .btn-custom {
+            background-color: #062B31FF;
+            border: none;
+            color: white;
+            transition: background-color 0.3s, transform 0.2s;
+            padding: 12px 25px;
+            margin-top: 15px;
+            border-radius: 5px;
+        }
+
+        .hero .btn-custom:hover {
+            background-color: #2C3E50;
+            transform: scale(1.1);
+        }
+
+        .hero .btn-custom:active {
+            background-color: #04191F;
+            transform: scale(0.98);
+        }
+
+        /* Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .hero {
+            animation: fadeIn 1.5s ease-in-out;
+        }
+
+        /* Navbar and Footer */
+        .navbar {
+            background: rgba(0, 0, 0, 0.7);
+        }
+
+        .footer {
+            background-color: #fff;
+            color: #ddd;
+            text-align: center;
+            padding: 15px;
+            position: absolute;
+            width: 100%;
+            bottom: 0;
+        }
+
+        .modal-header, .modal-footer {
+            background-color: #333;
+            color: #fff;
+        }
+
+        .footer {
+            background-color: #222;
+        }
+
+        {% block custom_styles %}
+        /* Additional styles can be added by child templates here */
+        {% endblock %}
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('index') }}">SecureFile</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="hero">
+        <h1>Secure Your Files with Ease</h1>
+        <p>Experience the best in file encryption and security.</p>
+        <div class="encouraging-message">
+            <p>"Your data deserves the best protection. Join us in making your file storage secure and hassle-free!"</p>
+            <p>"Empower yourself with robust encryption—safeguard your files and enjoy peace of mind!"</p>
+        </div>
+
+        <!-- New Login Message Box -->
+        <div class="login-message">
+            <h2>Welcome Back!</h2>
+            <p>Please enter your credentials to log in.</p>
+            <button class="btn btn-custom" data-bs-toggle="modal" data-bs-target="#authModal">Login Now</button>
+        </div>
+    </div>
+
+    <!-- Flash Messages -->
+    <div class="container mt-3">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-info alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Main Content -->
+    <div class="container mt-4">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer bg-dark text-white mt-5 p-3 text-center">
+        &copy; 2024 SecureFile Encryption System
+    </footer>
+
+    <!-- Authentication Modal -->
+    {% block modals %}
+    <div class="modal fade" id="authModal" tabindex="-1" aria-labelledby="authModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="authModalLabel">Login</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Login Form -->
+                    <div id="loginForm">
+                        <form action="{{ url_for('login') }}" method="POST">
+                            <div class="mb-3">
+                                <label for="loginEmail" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="loginEmail" name="email" required placeholder="Enter your email">
+                            </div>
+                            <div class="mb-3">
+                                <label for="loginPassword" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="loginPassword" name="password" required minlength="8" placeholder="Enter your password">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Log In</button>
+                            <p>Don't have an account? <a href="#" id="showSignup">Register</a></p>
+                        </form>
+                    </div>
+                    <!-- Signup Form -->
+                    <div id="signupForm" style="display: none;">
+                        <form action="{{ url_for('signup') }}" method="POST">
+                            <div class="mb-3">
+                                <label for="signupEmail" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="signupEmail" name="email" required placeholder="Enter your email">
+                            </div>
+                            <div class="mb-3">
+                                <label for="signupPassword" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="signupPassword" name="password" required minlength="8" placeholder="Enter your password">
+                            </div>
+                            <div class="mb-3">
+                                <label for="phoneNumber" class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" id="phoneNumber" name="phone" required placeholder="Enter your phone number">
+                            </div>
+                            <div class="mb-3">
+                                <label for="userRole" class="form-label">Select Role</label>
+                                <select class="form-select" id="userRole" name="role" required>
+                                    <option value="" disabled selected>Select your role</option>
+                                    <option value="admin">Admin</option>
+                                    <option value="user">User</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Sign Up</button>
+                            <p>Already have an account? <a href="#" id="showLogin">Log In</a></p>
+                        </form>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endblock %}
+
+    <script>
+        document.getElementById('showSignup').addEventListener('click', function() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('signupForm').style.display = 'block';
+        });
+
+        document.getElementById('showLogin').addEventListener('click', function() {
+            document.getElementById('signupForm').style.display = 'none';
+            document.getElementById('loginForm').style.display = 'block';
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

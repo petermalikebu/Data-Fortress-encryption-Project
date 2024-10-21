@@ -1,0 +1,102 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}
+Dashboard - SecureFile
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Welcome Header -->
+    <h2 class="text-center mb-4">Always Keep Your Files Secured!</h2>
+    
+    <!-- User Email Display -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="email-display">
+            <span class="badge bg-info text-wrap p-2">{{ session['email'] }}</span>
+        </div>
+    </div>
+
+    <!-- File Management Section -->
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card text-center mb-4 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">File Management</h5>
+                    <p class="card-text">Manage your files easily and securely.</p>
+                    <a href="{{ url_for('upload_file') }}" class="btn btn-success btn-block mb-2">Upload File</a>
+                    <a href="{{ url_for('download_file') }}" class="btn btn-info btn-block mb-2">Download File</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Information or Features -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="alert alert-warning text-center" role="alert">
+                Remember to regularly back up your files and keep your account secure!
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Styles -->
+<style>
+    /* Welcome Heading Styling */
+    h2 {
+        color: #343a40;
+        font-family: 'Arial', sans-serif;
+        font-weight: bold;
+    }
+
+    /* Card Styling */
+    .card {
+        border: 1px solid #ced4da;
+        border-radius: 0.75rem;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .card:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1); /* Shadow effect for hover */
+    }
+
+    /* Button Customizations */
+    .btn-block {
+        width: 100%;
+        padding: 10px;
+        border-radius: 25px; /* Rounded buttons */
+        font-weight: bold;
+        transition: background-color 0.3s, transform 0.2s; /* Smooth hover transition */
+    }
+
+    .btn-success:hover, .btn-info:hover {
+        transform: translateY(-2px); /* Lift effect on hover */
+    }
+
+    /* Custom Alert Styling */
+    .alert {
+        font-size: 1.1rem;
+        background-color: #fff3cd;
+        border-color: #ffeeba;
+    }
+
+    /* Email Badge Styling */
+    .badge {
+        font-size: 1rem;
+        padding: 10px;
+        border-radius: 12px;
+    }
+
+    /* Responsive adjustments for smaller screens */
+    @media (max-width: 768px) {
+        h2 {
+            font-size: 1.5rem;
+        }
+
+        .btn-block {
+            font-size: 0.9rem;
+        }
+    }
+</style>
+{% endblock %}
